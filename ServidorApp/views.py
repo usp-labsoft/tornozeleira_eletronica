@@ -11,10 +11,7 @@ import json
 from rest_framework.response import Response
 from django.http import JsonResponse
 import datetime
-from tasks import *
-import threading
 import time
-from celery.task.control import revoke
 
 
 # Create your views here.
@@ -144,7 +141,6 @@ def Servidor_Home(request):
 
 			#Para o timer associado a essa autenticaçao
 			try:
-				revoke(str(task_id), terminate=True)
 				print "succeeded"
 				
 				#salva no DB
