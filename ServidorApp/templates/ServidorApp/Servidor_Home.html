@@ -1,0 +1,21 @@
+<html>
+    <head>
+        <title>Ola's blog</title>
+    </head>
+    <body>
+        <p>Hi there!</p>
+        <p>It works!</p>
+
+
+        <form id="login_form" method="post">
+            {% csrf_token %}
+            Status: <input type="text" name="status" value="" size="30"/>
+            <br />
+            <br>
+            <br>
+            <input type="submit" value="Entrar" name="submit" />
+        </form>
+
+
+    </body>
+</html>
