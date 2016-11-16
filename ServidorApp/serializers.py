@@ -17,13 +17,13 @@ class initialSerializer(serializers.Serializer):
     type = serializers.IntegerField(required=True)
 
 class mobileLogSerializer(serializers.Serializer):
-    time = serializers.DateField(required=True)
+    time = serializers.DateTimeField(required=True)
     gps = serializers.CharField(required=True)
     mobile_id = serializers.IntegerField(required=True)
 
 class autSerializer(serializers.Serializer):
     mobile_log_id_fk = serializers.IntegerField(required=True)
-    time =  serializers.DateField(required=True)
+    time =  serializers.DateTimeField(required=True)
     gps =  serializers.CharField(required=True)
     valid =  serializers.BooleanField(required=True)
     type_aut = serializers.CharField(required=True)
@@ -35,5 +35,5 @@ class timeoutSerializer(serializers.Serializer):
 
 class arduinoLogSerializer(serializers.Serializer):
     arduino_id_fk = serializers.IntegerField(required=True)
-    time = serializers.DateField(required=True)
+    time = serializers.DateTimeField(required=True)
     sensor_status = serializers.BooleanField(required=True)

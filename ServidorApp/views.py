@@ -30,6 +30,9 @@ def Servidor_Home(request):
 	#u.save()
 
 	if request.method == 'POST':
+		#instance = Arduinos_Time_Log.objects.get(id=12)
+		#print instance.id
+		#instance.delete()
 		#Fazendo Parse Inicial para saber qual tipo de informaçao foi recebida
 		json_data_received = json.loads(request.body)
 		content = initialSerializer(json_data_received)
@@ -170,12 +173,12 @@ def Servidor_Home(request):
 			json_data_received = json.loads(request.body)
 			content = arduinoLogSerializer(json_data_received)
 			content = JSONRenderer().render(content.data)
+			#print content
 
 			stream = BytesIO(content)
 			data = JSONParser().parse(stream)
 			serializer = arduinoLogSerializer(data=data) #cria nova instância
 			serializer.is_valid()
-
 
 			arduino_id = serializer.validated_data.pop('arduino_id_fk')
 			time = serializer.validated_data.pop('time')
@@ -193,7 +196,7 @@ def Servidor_Home(request):
 			#Cria o log do arduino
 			obj = Connected_Arduinos.objects.get(id = arduino_id)
 			ard = Arduinos_Time_Log(arduino_id_fk=obj,time=time,sensor_status=sensor_status)
-			#ard.save()
+			ard.save()
 
 
 
@@ -213,6 +216,10 @@ def Servidor_Home(request):
 
 			print "ALERTA DE TIME OUT: USUARIO " + str(user_id)
 
+		#Tipo 5 indica que foi agendado uma verificaçao do status dos arduinos
+		elif type == 5:
+			print "YAS"
+			c = add.delay(2,3)
 
 
 	return render(request, 'ServidorApp/Servidor_Home.html', {})
