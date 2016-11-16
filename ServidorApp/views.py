@@ -107,7 +107,12 @@ def Servidor_Home(request):
 				None
 
 
-			#ENVIAR POST PARA O CELULAR COM O TASK_ID e com o mob ID (quando ele manda a autenticaçao de volta, tenho que ter esse valor para salvr no BD)
+			#Enviar post para celular pedindo pra ele se autenticar:	
+			#data = json.dumps({"user_id":str(user_id),"mobile_log_id":str(mobile_log_id),"type":"4"})
+			#print data
+			#clen = len(data)
+			#req = urllib2.Request('http://127.0.0.1:8000/', data, {'Content-Type': 'application/json', 'Content-Length': clen})
+			#f = urllib2.urlopen(req)
 
 
 			#Se o usuario saiu da area de cobertura, gerar um aviso:
@@ -135,8 +140,8 @@ def Servidor_Home(request):
 			type_aut = serializer.validated_data.pop('type_aut')
 			task_id = serializer.validated_data.pop('task_id')
 
-			mob = Mobile_Log.objects.get(id=int(mobile_log_id_fk))
-			mob = Connected_Mobiles.objects.get(id=mob.id)
+			moblog = Mobile_Log.objects.get(id=int(mobile_log_id_fk))
+			mob = Connected_Mobiles.objects.get(id=moblog.id)
 			user = mob.user_fk
 
 
@@ -147,16 +152,52 @@ def Servidor_Home(request):
 			#Para o timer associado a essa autenticaçao
 			try:
 				revoke(str(task_id), terminate=True)
+				#salva no DB
+				auth = Authentication(log_id_fk=moblog,log_source="Mobile",time=time,gps=gps,type=type_aut,valid=valid)
+				#auth.save()
 				print "succeeded"
 				
-				#salva no DB
-				auth = Authentication(mobile_log_id_fk=mobile_log_id_fk,time=time,gps=gps,type=type_aut,valid=valid)
-				#auth.save()
+
 			except:
 				#a autenticaçao chegou atrasada	e o timer estourou - DECIDIR O QUE FAZER					
 				print "failed"
 
 		#return JsonResponse(serializer.data)
+
+		#Tipo 3 indica que o servidor recebeu Log de um arduino
+		elif type == 3:
+			#print "T"
+			json_data_received = json.loads(request.body)
+			content = arduinoLogSerializer(json_data_received)
+			content = JSONRenderer().render(content.data)
+
+			stream = BytesIO(content)
+			data = JSONParser().parse(stream)
+			serializer = arduinoLogSerializer(data=data) #cria nova instância
+			serializer.is_valid()
+
+
+			arduino_id = serializer.validated_data.pop('arduino_id_fk')
+			time = serializer.validated_data.pop('time')
+			sensor_status = serializer.validated_data.pop('sensor_status')
+
+			if sensor_status == False:
+				#Enviar post para celular pedindo pra ele se autenticar:	
+				#data = json.dumps({"user_id":str(user_id),"mobile_log_id":str(mobile_log_id),"type":"4"})
+				#print data
+				#clen = len(data)
+				#req = urllib2.Request('http://127.0.0.1:8000/', data, {'Content-Type': 'application/json', 'Content-Length': clen})
+				#f = urllib2.urlopen(req)
+				None
+			
+			#Cria o log do arduino
+			obj = Connected_Arduinos.objects.get(id = arduino_id)
+			ard = Arduinos_Time_Log(arduino_id_fk=obj,time=time,sensor_status=sensor_status)
+			#ard.save()
+
+
+
+		#Tipo 4 indica que o Servidor recebeu um alerta de TimeOut de autenticaçao de um usuario		
 		elif type == 4:
 			json_data_received = json.loads(request.body)
 			content = timeoutSerializer(json_data_received)

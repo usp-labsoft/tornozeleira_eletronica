@@ -34,7 +34,8 @@ class Mobile_Log(models.Model):
 #class Authentication()
 
 class Authentication(models.Model):
-	mobile_log_id_fk = models.ForeignKey(Mobile_Log)
+	log_id_fk = models.ForeignKey(Mobile_Log)
+	log_source = models.CharField(max_length=100)
 	time = models.DateField()
 	gps = models.CharField(max_length=100)
 	type = models.CharField(max_length=100)

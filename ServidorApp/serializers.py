@@ -32,3 +32,8 @@ class autSerializer(serializers.Serializer):
 class timeoutSerializer(serializers.Serializer):
     user_id = serializers.IntegerField(required=True)
     mobile_log_id = serializers.IntegerField(required=True)
+
+class arduinoLogSerializer(serializers.Serializer):
+    arduino_id_fk = serializers.IntegerField(required=True)
+    time = serializers.DateField(required=True)
+    sensor_status = serializers.BooleanField(required=True)
