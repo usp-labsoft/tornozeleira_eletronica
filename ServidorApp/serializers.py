@@ -28,3 +28,7 @@ class autSerializer(serializers.Serializer):
     valid =  serializers.BooleanField(required=True)
     type_aut = serializers.CharField(required=True)
     task_id = serializers.CharField(required=True)
+
+class timeoutSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField(required=True)
+    mobile_log_id = serializers.IntegerField(required=True)

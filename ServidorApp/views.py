@@ -7,11 +7,17 @@ from ServidorApp.serializers import *
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 from django.utils.six import BytesIO
-import json
 from rest_framework.response import Response
 from django.http import JsonResponse
-import datetime
+from tasks import *
+from celery.task.control import revoke
+
+import json
 import time
+import urllib
+import urllib2
+import datetime
+
 
 
 # Create your views here.
@@ -23,8 +29,7 @@ def Servidor_Home(request):
 	#u = Connected_Mobiles(user_fk = obj, phone = "1178541234")
 	#u.save()
 
-	if request.method == 'POST':		
-		
+	if request.method == 'POST':
 		#Fazendo Parse Inicial para saber qual tipo de informaçao foi recebida
 		json_data_received = json.loads(request.body)
 		content = initialSerializer(json_data_received)
@@ -87,20 +92,20 @@ def Servidor_Home(request):
 			auth = True #fazer random
 
 
+			#Salva o Log gerado no BD
+			obj = Connected_Mobiles.objects.get(id = mobile_id)
+			mob = Mobile_Log(mobile_id_fk = obj, time = time, gps = gps, auth_required = auth)
+			mob.save()
+
 			#Gerar um token (id da task), enviar pro celular esse token e colocar numa lista
 			#Ativar o timer assincrono
 			#O celular manda request de novo com type = 2, e ele para o timer
 			#Se um timer estourar, o celery indica que a task foi terminated, a partir disso dar um jeito de exibir essa informaçao (LOGGER??)
 			if auth == True:
-				#t = timer.delay()
+				t = timer.delay(user.id, mob.id)
 				#print t.id
 				None
 
-
-			#Salva o Log gerado no BD
-			obj = Connected_Mobiles.objects.get(id = mobile_id)
-			mob = Mobile_Log(mobile_id_fk = obj, time = time, gps = gps, auth_required = auth)
-			mob.save()
 
 			#ENVIAR POST PARA O CELULAR COM O TASK_ID e com o mob ID (quando ele manda a autenticaçao de volta, tenho que ter esse valor para salvr no BD)
 
@@ -141,6 +146,7 @@ def Servidor_Home(request):
 
 			#Para o timer associado a essa autenticaçao
 			try:
+				revoke(str(task_id), terminate=True)
 				print "succeeded"
 				
 				#salva no DB
@@ -151,6 +157,20 @@ def Servidor_Home(request):
 				print "failed"
 
 		#return JsonResponse(serializer.data)
+		elif type == 4:
+			json_data_received = json.loads(request.body)
+			content = timeoutSerializer(json_data_received)
+			content = JSONRenderer().render(content.data)
+
+			stream = BytesIO(content)
+			data = JSONParser().parse(stream)
+			serializer = timeoutSerializer(data=data) #cria nova instância
+			serializer.is_valid()
+
+			user_id = serializer.validated_data.pop('user_id')
+			mobile_log_id = serializer.validated_data.pop('mobile_log_id')
+
+			print "ALERTA DE TIME OUT: USUARIO " + str(user_id)
 
 
 
