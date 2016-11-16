@@ -33,6 +33,8 @@ def Servidor_Home(request):
 		#instance = Arduinos_Time_Log.objects.get(id=12)
 		#print instance.id
 		#instance.delete()
+		#Mobile_Log.objects.all().delete()
+
 		#Fazendo Parse Inicial para saber qual tipo de informaçao foi recebida
 		json_data_received = json.loads(request.body)
 		content = initialSerializer(json_data_received)

@@ -34,44 +34,37 @@ def add(x, y):
 	#String que sera retornada ao server. Contem os ids dos arduinos com problema
 	faulty_ard = ""
 	obj = Arduinos_Time_Log.objects.latest('id')
-	#print obj.id
+
 	for id in range(1,obj.id+1):
 		try:
 			ard = Arduinos_Time_Log.objects.get(id=int(id))
-
-			#Fazendo operaçoes em string com a data atual e a data do log para poder efetuar contas
-			t1 = str(ard.time).split("+")
-			t1 = t1[0].split(".")
-
-			t2 = str(datetime.datetime.now()).split(".")
-
-			t1 = t1[0]
-			t2 = t2[0]
-
-			#Formatando as datas para poder efetuar as contas
-			a = datetime.datetime.strptime(str(t1), "%Y-%m-%d %H:%M:%S")
-			b = datetime.datetime.strptime(str(t2), "%Y-%m-%d %H:%M:%S")
-			offset = datetime.datetime.strptime("0:30:0","%H:%M:%S")
-
-			diff = b-a
-			print "Log: " + str(a)
-			print "Now: " + str(b)
-			print "Dif: " + str(diff)
-			print "Off: " +str(offset)
+			diff = timeManipulation(ard.time)
 
 			#Se a diferença entre o ultimo log enviado e o tempo atual for maior que 1h significa que o arduino deixou de enviar os logs periodicos -> defeito
 			if diff > datetime.timedelta(minutes = 6):
-				faulty_ard += str(ard.id) + " "
-				print "AHA"
+				faulty_ard += str(ard.arduino_id_fk.id) + " "
+				#print "AHA"
+		except:	
+			None	
 
 
-
+	#String que sera retornada ao server. Contem os ids dos mobiles com problema
+	faulty_mob = ""
+	obj = Mobile_Log.objects.latest('id')
+	for id in range(1,obj.id+1):
+		try:
+			mob = Mobile_Log.objects.get(id=int(id))
+			diff = timeManipulation(mob.time)
+			#Se a diferença entre o ultimo log enviado e o tempo atual for maior que 1h significa que o arduino deixou de enviar os logs periodicos -> defeito
+			if diff > datetime.timedelta(minutes = 6):
+				faulty_mob += str(mob.mobile_id_fk.id) + " "
+				#print "AHA"
 		except:	
 			None	
 
 
 	print str(faulty_ard)
-
+	print str(faulty_mob)
 
 	#Enviar POST REQUEST para o servidor, com uma lista de arduinos que pararam de responder
 	# data = json.dumps({"user_id":str(user_id),"mobile_log_id":str(mobile_log_id),"type":"4"})
@@ -81,3 +74,25 @@ def add(x, y):
 	# f = urllib2.urlopen(req)
 
 	return x + y
+
+def timeManipulation(ard_time):
+	#Fazendo operaçoes em string com a data atual e a data do log para poder efetuar contas
+	t1 = str(ard_time).split("+")
+	t1 = t1[0].split(".")
+
+	t2 = str(datetime.datetime.now()).split(".")
+
+	t1 = t1[0]
+	t2 = t2[0]
+
+	#Formatando as datas para poder efetuar as contas
+	a = datetime.datetime.strptime(str(t1), "%Y-%m-%d %H:%M:%S")
+	b = datetime.datetime.strptime(str(t2), "%Y-%m-%d %H:%M:%S")
+	offset = datetime.datetime.strptime("0:30:0","%H:%M:%S")
+
+	diff = b-a
+	# print "Log: " + str(a)
+	# print "Now: " + str(b)
+	# print "Dif: " + str(diff)
+	
+	return diff
