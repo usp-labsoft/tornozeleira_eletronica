@@ -30,50 +30,60 @@ def timer(user_id, mobile_log_id):
 
 
 @shared_task
-def add(x, y):
+def checkFaults():
 	#String que sera retornada ao server. Contem os ids dos arduinos com problema
 	faulty_ard = ""
-	obj = Arduinos_Time_Log.objects.latest('id')
+	all_arduinos = Connected_Arduinos.objects.all()
 
-	for id in range(1,obj.id+1):
+	for arduino in all_arduinos:
+
 		try:
-			ard = Arduinos_Time_Log.objects.get(id=int(id))
-			diff = timeManipulation(ard.time)
+			log = Arduinos_Time_Log.objects.filter(arduino_id_fk=arduino).order_by('-time')
+			diff = timeManipulation(log[0].time)
+			#print diff
 
 			#Se a diferença entre o ultimo log enviado e o tempo atual for maior que 1h significa que o arduino deixou de enviar os logs periodicos -> defeito
-			if diff > datetime.timedelta(minutes = 6):
-				faulty_ard += str(ard.arduino_id_fk.id) + " "
-				#print "AHA"
-		except:	
-			None	
+			if diff > datetime.timedelta(minutes = 16):
+				faulty_ard += str(arduino.id) + " "
+				#print "faultyard"
+		except:
+			print "Nao ha log do arduino de id " + str(arduino.id)
 
-
-	#String que sera retornada ao server. Contem os ids dos mobiles com problema
+		
 	faulty_mob = ""
-	obj = Mobile_Log.objects.latest('id')
-	for id in range(1,obj.id+1):
+	all_mobiles = Connected_Mobiles.objects.all()
+
+	for mobile in all_mobiles:
 		try:
-			mob = Mobile_Log.objects.get(id=int(id))
-			diff = timeManipulation(mob.time)
+			log = Mobile_Log.objects.filter(mobile_id_fk=mobile).order_by('-time')
+			# print log[0].time
+			# print str(datetime.datetime.now())
+			diff = timeManipulation(log[0].time)
+
+			#print diff
+
 			#Se a diferença entre o ultimo log enviado e o tempo atual for maior que 1h significa que o arduino deixou de enviar os logs periodicos -> defeito
 			if diff > datetime.timedelta(minutes = 6):
-				faulty_mob += str(mob.mobile_id_fk.id) + " "
-				#print "AHA"
-		except:	
-			None	
+				faulty_mob += str(mobile.id) + " "
+				#print "faultymob"
+			else:
+				None
+				#print "notfaultymob"
+		except:
+			print "Nao ha log do mobile de id " + str(mobile.id)
 
+	# print "faulty_ard:",
+	# print str(faulty_ard)
+	# print "faulty_mob:",
+	# print str(faulty_mob)
 
-	print str(faulty_ard)
-	print str(faulty_mob)
+	#Enviar POST REQUEST para o servidor, com uma lista de arduinos e de mobiles que pararam de responder
+	data = json.dumps({"faulty_ard":faulty_ard,"faulty_mob":faulty_mob,"type":"6"})
+	print data
+	clen = len(data)
+	req = urllib2.Request('http://127.0.0.1:8000/', data, {'Content-Type': 'application/json', 'Content-Length': clen})
+	f = urllib2.urlopen(req)
 
-	#Enviar POST REQUEST para o servidor, com uma lista de arduinos que pararam de responder
-	# data = json.dumps({"user_id":str(user_id),"mobile_log_id":str(mobile_log_id),"type":"4"})
-	# print data
-	# clen = len(data)
-	# req = urllib2.Request('http://127.0.0.1:8000/', data, {'Content-Type': 'application/json', 'Content-Length': clen})
-	# f = urllib2.urlopen(req)
-
-	return x + y
 
 def timeManipulation(ard_time):
 	#Fazendo operaçoes em string com a data atual e a data do log para poder efetuar contas

@@ -23,17 +23,16 @@ import datetime
 # Create your views here.
 @csrf_exempt
 def Servidor_Home(request):
-	#print request.header
-	#obj = User.objects.latest('id')
-	#print obj.first_name
-	#u = Connected_Mobiles(user_fk = obj, phone = "1178541234")
-	#u.save()
-
 	if request.method == 'POST':
-		#instance = Arduinos_Time_Log.objects.get(id=12)
-		#print instance.id
-		#instance.delete()
-		#Mobile_Log.objects.all().delete()
+
+		#Arduinos_Time_Log.objects.all().delete()
+
+		#obj = User.objects.get(id=)
+
+		#c = Connected_Mobiles(user_fk = obj, phone = '32132131')
+		#a = Connected_Arduinos(user_fk = obj)
+		#a.save()
+		#c.save()
 
 		#Fazendo Parse Inicial para saber qual tipo de informaçao foi recebida
 		json_data_received = json.loads(request.body)
@@ -55,7 +54,7 @@ def Servidor_Home(request):
 			data = JSONParser().parse(stream)
 			serializer = userSerializer(data=data) #cria nova instância
 			serializer.is_valid()
-			print serializer.validated_data
+			#print serializer.validated_data
 
 			fn = serializer.validated_data.pop('first_name')
 			ln = serializer.validated_data.pop('last_name')
@@ -101,6 +100,7 @@ def Servidor_Home(request):
 			obj = Connected_Mobiles.objects.get(id = mobile_id)
 			mob = Mobile_Log(mobile_id_fk = obj, time = time, gps = gps, auth_required = auth)
 			mob.save()
+			#print mob.id
 
 			#Gerar um token (id da task), enviar pro celular esse token e colocar numa lista
 			#Ativar o timer assincrono
@@ -134,8 +134,8 @@ def Servidor_Home(request):
 			data = JSONParser().parse(stream)
 			serializer = autSerializer(data=data) #cria nova instância
 			serializer.is_valid()
-			
-			mobile_log_id_fk = serializer.validated_data.pop('mobile_log_id_fk')
+
+			mobile_id = serializer.validated_data.pop('mobile_id')
 			time = serializer.validated_data.pop('time')
 			gps = serializer.validated_data.pop('gps')
 			aux = gps.split(";")
@@ -145,9 +145,12 @@ def Servidor_Home(request):
 			type_aut = serializer.validated_data.pop('type_aut')
 			task_id = serializer.validated_data.pop('task_id')
 
-			moblog = Mobile_Log.objects.get(id=int(mobile_log_id_fk))
-			mob = Connected_Mobiles.objects.get(id=moblog.id)
+
+			mob = Connected_Mobiles.objects.get(id=mobile_id)
+			moblog = Mobile_Log.objects.filter(mobile_id_fk=mob).order_by('-time')
+			#print moblog[0].id
 			user = mob.user_fk
+
 
 
 			#Se o usuario saiu da area de cobertura, gerar um aviso:
@@ -158,14 +161,12 @@ def Servidor_Home(request):
 			try:
 				revoke(str(task_id), terminate=True)
 				#salva no DB
-				auth = Authentication(log_id_fk=moblog,log_source="Mobile",time=time,gps=gps,type=type_aut,valid=valid)
-				#auth.save()
-				print "succeeded"
-				
-
+				auth = Authentication(log_id_fk=moblog[0],log_source="Mobile",time=time,gps=gps,type=type_aut,valid=valid)
+				auth.save()
+				print "Succeeded"
 			except:
 				#a autenticaçao chegou atrasada	e o timer estourou - DECIDIR O QUE FAZER					
-				print "failed"
+				print "Failed"
 
 		#return JsonResponse(serializer.data)
 
@@ -220,8 +221,24 @@ def Servidor_Home(request):
 
 		#Tipo 5 indica que foi agendado uma verificaçao do status dos arduinos
 		elif type == 5:
-			print "YAS"
-			c = add.delay(2,3)
+			#print "type5"
+			c = checkFaults.delay()
 
+		#Tipo 6 indica que a resposta da verificaçao chegou e recebe os ids dos arduinos e mobiles com defeito
+		elif type == 6:
+			json_data_received = json.loads(request.body)
+			content = faultySerializer(json_data_received)
+			content = JSONRenderer().render(content.data)
+
+			stream = BytesIO(content)
+			data = JSONParser().parse(stream)
+			serializer = faultySerializer(data=data) #cria nova instância
+			serializer.is_valid()
+
+			faulty_ard = serializer.validated_data.pop('faulty_ard')
+			faulty_mob = serializer.validated_data.pop('faulty_mob')
+
+			#print faulty_mob
+			#print faulty_ard
 
 	return render(request, 'ServidorApp/Servidor_Home.html', {})

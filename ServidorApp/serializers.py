@@ -22,7 +22,7 @@ class mobileLogSerializer(serializers.Serializer):
     mobile_id = serializers.IntegerField(required=True)
 
 class autSerializer(serializers.Serializer):
-    mobile_log_id_fk = serializers.IntegerField(required=True)
+    mobile_id = serializers.IntegerField(required=True)
     time =  serializers.DateTimeField(required=True)
     gps =  serializers.CharField(required=True)
     valid =  serializers.BooleanField(required=True)
@@ -37,3 +37,8 @@ class arduinoLogSerializer(serializers.Serializer):
     arduino_id_fk = serializers.IntegerField(required=True)
     time = serializers.DateTimeField(required=True)
     sensor_status = serializers.BooleanField(required=True)
+
+class faultySerializer(serializers.Serializer):
+    faulty_ard = serializers.CharField(required=True)
+    faulty_mob = serializers.CharField(required=True)
+    
