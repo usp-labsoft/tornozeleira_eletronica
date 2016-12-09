@@ -1,0 +1,101 @@
+.spantabela table{
+    width: 75%;
+	height: 75%;
+    text-align: center;	
+	border-color: #6495ED; 
+	display: inline-block;
+    overflow: auto;	
+}
+
+.spantabela thead{
+	display: block; 
+}
+
+.spantabela tbody{
+	display: block; 
+} 
+
+.spantabela tr { 
+	display: block; 
+}
+
+.spantabela td{
+	display: block; 
+}
+
+.spantabela th { 
+	display: block; 
+}
+
+.page-header {
+    background-color: #0000CD;
+    margin-top: 0;
+    padding: 10px 20px 15px 40px;
+	text-align: center;
+}
+
+.page-header h1, .page-header h1 a, .page-header h1 a:visited, .page-header h1 a:active {
+    color: #ffffff;
+    font-size: 36pt;
+    text-decoration: none;
+}
+
+.content {
+    margin-left: -20px;
+}
+
+h1, h3, h4 {
+    font-family: 'Lobster', cursive;
+}
+
+.save {
+    float: right;
+}
+
+.lista-form textarea, .lista-form input {
+    width: 100%;
+}
+
+.lista table{
+    width: 75%;
+	height: 75%;
+    text-align: center;	
+	border-color: #6495ED; 
+}
+
+
+.lista th{
+	text-align: center;
+	vertical-align: center;
+	font-family: 'Chaparral Pro', cursive;
+	font-size: 20px;
+	height: 32px;		
+    background-color: #6495ED;
+    color: white;
+	padding: 5px;
+}
+
+.lista tr:hover {background-color: #f5f5f5}
+
+
+.lista td{
+	text-align: center;
+	vertical-align: center;
+	height: 30px;	
+	padding: 5px;
+}
+
+.top-menu, .top-menu:hover, .top-menu:visited {
+    color: #ffffff;
+    float: right;
+    font-size: 26pt;
+    margin-right: 20px;
+}
+
+.lista {
+    margin-left: 20px;
+}
+
+.lista h1 a, .lista h1 a:visited {
+    color: #000000;
+}

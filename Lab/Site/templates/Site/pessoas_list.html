@@ -1,0 +1,45 @@
+{% extends 'Site/base.html' %}
+
+{% block content %}	
+	
+	<span class = "spantabela">
+		<div class="lista">
+			<table border="1">
+				<tr>
+					<th>Nome</th>
+				</tr>				
+					{% for pessoa in pessoas %}
+				<tr>
+					<td><a href="{% url 'Site.views.pessoa_local' pk=pessoa.pk %}"> {{ pessoa.first_name }} {{ pessoa.last_name }} </a></td>
+				</tr>
+					{% endfor %}
+			</table>			
+		</div>
+	</span>
+	
+    <style>
+
+      #map {
+        height: 75%;
+		width: 100%;
+		margin-top: -700px;
+		margin-left: 700px;
+      }
+    </style>
+
+    <div id="map"></div>
+	
+    <script>
+		var map;
+		function initMap() {
+		  map = new google.maps.Map(document.getElementById('map'), {
+			center: {lat: -23.4951051, lng: -46.874376},
+			zoom: 8
+		  });
+		}
+	</script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrv6iWqSJLr6mqbfTzs87wiFGOs96UDWc&callback=initMap"
+        async defer>
+	</script>
+	
+{% endblock content %}

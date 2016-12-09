@@ -1,0 +1,63 @@
+{% extends 'Site/base.html' %}
+
+{% block content %}
+
+	<style>
+      #map {
+        height: 75%;
+		width: 100%;
+		margin-top: -700px;
+		margin-left: 700px;
+      }
+	  
+    </style>
+	
+		<div class="lista">
+			<table border="1">
+				<tbody>
+					<tr><th><h2><b>{{ pessoa.first_name }} {{ pessoa.last_name }}</b></h2></th></tr>	
+					<tr><td><b>CPF:</b> {{pessoa.cpf}}</td></tr>
+					<tr><td><b>Telefone:</b> {{pessoa.telefone}}</td></tr>	
+					<tr><td><b>Endereço:</b> {{pessoa.endereco}}</td></tr>	
+					<tr><td><b>Posição:</b> ({{pessoa.lat}} , {{pessoa.long}})</td></tr>			
+				</tbody>
+			</table>			
+		</div>	
+    
+
+    <div id="map"></div>
+	
+    <script>
+		
+		var marker;
+
+		function initMap() {
+			var map = new google.maps.Map(document.getElementById('map'), {
+				zoom: 18,
+				center: {lat: {{pessoa.lat}}, lng: {{pessoa.long}}}
+			});
+
+			marker = new google.maps.Marker({
+				map: map,
+				draggable: false,
+				animation: google.maps.Animation.DROP,
+				title: "{{pessoa.first_name}}",
+				position: {lat: {{pessoa.lat}}, lng: {{pessoa.long}} }
+			});
+			
+			map.addListener('tilesloaded', toggleBounce);
+		}
+
+		function toggleBounce() {
+			if (({{pessoa.lat}} > {{pessoa.lat_max}}) || ({{pessoa.lat}} < {{pessoa.lat_min}}) || ({{pessoa.long}} > {{pessoa.long_max}}) || ({{pessoa.long}} < {{pessoa.long_min}})) {
+				marker.setAnimation(google.maps.Animation.BOUNCE);
+			}
+		}
+				
+	</script>
+	
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrv6iWqSJLr6mqbfTzs87wiFGOs96UDWc&callback=initMap"
+        async defer>
+	</script>
+	
+{% endblock content %}
