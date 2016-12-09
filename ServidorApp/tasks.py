@@ -17,7 +17,7 @@ def timer(user_id, mobile_log_id):
 	while mins != 1:
 	    #print ">>>>>>>>>>>>>>>>>>>>>", mins
 	    # Sleep for a minute
-	    time.sleep(60)
+	    time.sleep(35)
 	    # Increment the minute total
 	    mins += 1
 
@@ -40,10 +40,10 @@ def checkFaults():
 		try:
 			log = Arduinos_Time_Log.objects.filter(arduino_id_fk=arduino).order_by('-time')
 			diff = timeManipulation(log[0].time)
-			#print diff
+			print "dt: " + str(diff) + " do arduino de id " + str(arduino.id)
 
 			#Se a diferença entre o ultimo log enviado e o tempo atual for maior que 1h significa que o arduino deixou de enviar os logs periodicos -> defeito
-			if diff > datetime.timedelta(minutes = 16):
+			if diff > datetime.timedelta(minutes = 30):
 				faulty_ard += str(arduino.id) + " "
 				#print "faultyard"
 		except:
@@ -60,10 +60,10 @@ def checkFaults():
 			# print str(datetime.datetime.now())
 			diff = timeManipulation(log[0].time)
 
-			#print diff
+			print "dt: " + str(diff) + " do mobile de id " + str(mobile.id)
 
 			#Se a diferença entre o ultimo log enviado e o tempo atual for maior que 1h significa que o arduino deixou de enviar os logs periodicos -> defeito
-			if diff > datetime.timedelta(minutes = 6):
+			if diff > datetime.timedelta(minutes = 30):
 				faulty_mob += str(mobile.id) + " "
 				#print "faultymob"
 			else:

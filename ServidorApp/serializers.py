@@ -39,6 +39,6 @@ class arduinoLogSerializer(serializers.Serializer):
     sensor_status = serializers.BooleanField(required=True)
 
 class faultySerializer(serializers.Serializer):
-    faulty_ard = serializers.CharField(required=True)
-    faulty_mob = serializers.CharField(required=True)
+    faulty_ard = serializers.CharField(required=True, allow_blank=True)
+    faulty_mob = serializers.CharField(required=False, allow_blank=True)
     

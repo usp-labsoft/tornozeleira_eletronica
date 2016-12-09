@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from django.http import JsonResponse
 from tasks import *
 from celery.task.control import revoke
+from django.http import HttpResponse
 
 import json
 import time
@@ -25,11 +26,13 @@ import datetime
 def Servidor_Home(request):
 	if request.method == 'POST':
 
+		#Authentication.objects.all().delete()
 		#Arduinos_Time_Log.objects.all().delete()
 
-		#obj = User.objects.get(id=)
+		#obj = User.objects.get(id=2)
 
-		#c = Connected_Mobiles(user_fk = obj, phone = '32132131')
+		#print obj.first_name
+		#c = Connected_Mobiles(user_fk = obj, phone = '222222222')
 		#a = Connected_Arduinos(user_fk = obj)
 		#a.save()
 		#c.save()
@@ -66,6 +69,9 @@ def Servidor_Home(request):
 		
 			#u = User(first_name=fn,last_name=ln,cpf=cpf,lat_max=lmax,lat_min=lmin,long_max=lomax,long_min=lomin)
 			#u.save()
+			#c = Connected_Mobiles(user_fk = u, phone = '222222222')
+			#a = Connected_Arduinos(user_fk = u)
+			return HttpResponse('\nUsuario cadastrado com sucesso\n\n')
 
 		#TIpo 1 indica que recebeu um log do Mobile
 		elif type == 1:
@@ -89,7 +95,8 @@ def Servidor_Home(request):
 			time = serializer.validated_data.pop('time')
 
 			#Relacionado o mobile_log ao usuario correspondente
-			user = User.objects.get(id=int(mobile_id))
+			obj = Connected_Mobiles.objects.get(id = mobile_id)
+			user = obj.user_fk
 
 
 			#Gerando pedindo de autorizaçao aleatorimamente
@@ -97,18 +104,18 @@ def Servidor_Home(request):
 
 
 			#Salva o Log gerado no BD
-			obj = Connected_Mobiles.objects.get(id = mobile_id)
-			mob = Mobile_Log(mobile_id_fk = obj, time = time, gps = gps, auth_required = auth)
+			mob = Mobile_Log(mobile_id_fk = obj, time = time, gps = gps)
 			mob.save()
+			
 			#print mob.id
-
 			#Gerar um token (id da task), enviar pro celular esse token e colocar numa lista
 			#Ativar o timer assincrono
 			#O celular manda request de novo com type = 2, e ele para o timer
 			#Se um timer estourar, o celery indica que a task foi terminated, a partir disso dar um jeito de exibir essa informaçao (LOGGER??)
 			if auth == True:
+				#print "test"
 				t = timer.delay(user.id, mob.id)
-				#print t.id
+				print t.id
 				None
 
 
@@ -122,7 +129,9 @@ def Servidor_Home(request):
 
 			#Se o usuario saiu da area de cobertura, gerar um aviso:
 			if lati >= user.lat_max or lati <= user.lat_min or longi >= user.long_max or longi <= user.long_min:
-				print "Fora da área de cobertura"
+				print "Usuario: " + str(user.id) + " fora da área de cobertura"
+
+			return HttpResponse('\nLog do Mobile cadastrado com sucesso\n\n')
 
 
 		#Tipo 2 indica recebimento de Autenticaçao, portanto, o timer do background para
@@ -145,9 +154,8 @@ def Servidor_Home(request):
 			type_aut = serializer.validated_data.pop('type_aut')
 			task_id = serializer.validated_data.pop('task_id')
 
-
 			mob = Connected_Mobiles.objects.get(id=mobile_id)
-			moblog = Mobile_Log.objects.filter(mobile_id_fk=mob).order_by('-time')
+			#moblog = Mobile_Log.objects.filter(mobile_id_fk=mob).order_by('-time')
 			#print moblog[0].id
 			user = mob.user_fk
 
@@ -155,18 +163,20 @@ def Servidor_Home(request):
 
 			#Se o usuario saiu da area de cobertura, gerar um aviso:
 			if lati >= user.lat_max or lati <= user.lat_min or longi >= user.long_max or longi <= user.long_min:
-				print "Fora da área de cobertura"
+				print "Usuario: " + str(user.id) + " fora da área de cobertura"
 
 			#Para o timer associado a essa autenticaçao
 			try:
 				revoke(str(task_id), terminate=True)
 				#salva no DB
-				auth = Authentication(log_id_fk=moblog[0],log_source="Mobile",time=time,gps=gps,type=type_aut,valid=valid)
+				auth = Authentication(time=time,gps=gps,type=type_aut,valid=valid)
 				auth.save()
-				print "Succeeded"
+				return HttpResponse('\nAutenticaçao realizada com sucesso\n\n')
 			except:
 				#a autenticaçao chegou atrasada	e o timer estourou - DECIDIR O QUE FAZER					
-				print "Failed"
+				print "Falha na Autenticaçao do usuario id: " + str(user.id)
+				return HttpResponse('\Falha na autenticaçao, apesar de enviada, ela chegou atrasada e houve timeout\n\n')
+
 
 		#return JsonResponse(serializer.data)
 
@@ -187,20 +197,28 @@ def Servidor_Home(request):
 			time = serializer.validated_data.pop('time')
 			sensor_status = serializer.validated_data.pop('sensor_status')
 
-			if sensor_status == False:
+			obj = Connected_Arduinos.objects.get(id = arduino_id)
+			user = obj.user_fk
+			mob = Connected_Mobiles.objects.get(user_fk=user)
+
+			#print sensor_status
+
+			if sensor_status == True:
 				#Enviar post para celular pedindo pra ele se autenticar:	
+				t = timer.delay(user.id, mob.id)
+				print t.id
 				#data = json.dumps({"user_id":str(user_id),"mobile_log_id":str(mobile_log_id),"type":"4"})
 				#print data
 				#clen = len(data)
 				#req = urllib2.Request('http://127.0.0.1:8000/', data, {'Content-Type': 'application/json', 'Content-Length': clen})
 				#f = urllib2.urlopen(req)
-				None
 			
 			#Cria o log do arduino
 			obj = Connected_Arduinos.objects.get(id = arduino_id)
 			ard = Arduinos_Time_Log(arduino_id_fk=obj,time=time,sensor_status=sensor_status)
 			ard.save()
 
+			return HttpResponse('\nLog de Arduino cadastrado com sucesso\n\n')
 
 
 		#Tipo 4 indica que o Servidor recebeu um alerta de TimeOut de autenticaçao de um usuario		
@@ -238,7 +256,9 @@ def Servidor_Home(request):
 			faulty_ard = serializer.validated_data.pop('faulty_ard')
 			faulty_mob = serializer.validated_data.pop('faulty_mob')
 
-			#print faulty_mob
-			#print faulty_ard
+			print "Ids de mobiles defeituosos:",
+			print faulty_mob
+			print "Ids de arduinos defeituosos:",
+			print faulty_ard
 
 	return render(request, 'ServidorApp/Servidor_Home.html', {})

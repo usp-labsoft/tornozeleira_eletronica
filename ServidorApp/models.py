@@ -15,7 +15,7 @@ class User(models.Model):
 
     
 class Connected_Arduinos(models.Model):
-    user = models.ForeignKey(User)
+    user_fk = models.ForeignKey(User)
  
 class Arduinos_Time_Log(models.Model):
 	arduino_id_fk = models.ForeignKey(Connected_Arduinos)
@@ -30,12 +30,10 @@ class Mobile_Log(models.Model):
 	mobile_id_fk = models.ForeignKey(Connected_Mobiles) 
 	time = models.DateTimeField()
 	gps = models.CharField(max_length=100)
-	auth_required = models.BooleanField()
-#class Authentication()
 
 class Authentication(models.Model):
-	log_id_fk = models.ForeignKey(Mobile_Log)
-	log_source = models.CharField(max_length=100)
+	#log_id_fk = models.ForeignKey(Mobile_Log)
+	#log_source = models.CharField(max_length=100)
 	time = models.DateTimeField()
 	gps = models.CharField(max_length=100)
 	type = models.CharField(max_length=100)
