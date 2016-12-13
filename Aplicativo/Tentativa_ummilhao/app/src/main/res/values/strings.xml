@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">AppStk</string>
+    <string name="host_port_hint">Porta</string>
+    <string name="host_port_label">Porta</string>
+    <string name="btn_send">Porta</string>
+    <string name="button3">Localizacao</string>
+    <string name="title_activity_main">Main</string>
+</resources>
